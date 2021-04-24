@@ -1,0 +1,8 @@
+[package]
+name = "kormozgas"
+version = "0.1.0"
+authors = ["sebmarton"]
+edition = "2018"
+
+[dependencies]
+plotlib = "0.5.0"
