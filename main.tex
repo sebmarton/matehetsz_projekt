@@ -1,0 +1,518 @@
+%\documentclass{article}
+\documentclass[%
+ reprint,onecolumn,
+%superscriptaddress,
+%groupedaddress,
+%unsortedaddress,
+%runinaddress,
+%frontmatterverbose, 
+%preprint,
+%preprintnumbers,
+%nofootinbib,
+%nobibnotes,
+%bibnotes,
+ amsmath,amssymb,
+ aps,
+%pra,
+%prb,
+%rmp,
+%prstab,
+%prstper,
+%floatfix,
+]{revtex4-2}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+%\usepackage[magyar]{babel}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+
+\begin{document}
+
+\title{Hogyan mozog a Föld a Nap körül? \\
+Differenciálegyenletek számítógépes megoldása 
+középiskolásoknak}
+
+\author{Sebestyén Márton}
+\affiliation{Budapest-Fasori Evangélikus Gimnázium}
+
+\author{Pályi András}
+\affiliation{Elméleti Fizika Tanszék, 
+Budapesti Műszaki és Gazdaságtudományi Egyetem}
+
+\date{\today}
+
+
+
+\maketitle
+
+\tableofcontents
+
+\section{Bevezetés}
+
+Ebben a rövid jegyzetben bemutatjuk, hogy hogyan
+lehet egyszerű mechanika feladatokat számítógéppel
+megoldani. 
+Itt azt a konkrét célt tűzzük ki, hogy néhány lépésben 
+eljussunk a bolygómozgást leíró mozgásegyenletek
+megoldásáig, azaz leírjuk például azt, hogy hogyan
+mozog a Föld a Nap körül.
+A jegyzet hasznos lehet a fizika és/vagy a 
+differenciálegyenletek és/vagy a programozás 
+iránt érdeklődő középiskolások vagy
+egyetemisták számára.
+
+
+\section{A legegyszerűbb példa: egy elsőrendű közönséges
+differenciálegyenlet}
+
+Először egy olyan feladatot veszünk, ami
+nem kapcsolódik konkrét mozgáshoz, de 
+vele példát tudunk mutatni
+egy egyszerű \emph{differenciálegyenlet}re,
+és az annak \emph{diszkretizációjá}val kapott
+\emph{differenciaegyenlet}re.
+Ez a diszkretizáció az az eszköz, amit a későbbiekben
+például a Föld Nap körüli mozgásának leírásakor
+is használni fogunk. 
+
+Tekintsünk egy nagyon egyszerű
+elsőrendű differenciálegyenletet:
+\begin{equation}
+\label{eq:elsorendupelda}
+    y'(t) = 3 c t.
+\end{equation}
+Bár ehhez az egyenlethez 
+nem kapcsolunk konkrét mechanikai
+rendszert, a fizikai alkalmazást szem előtt
+tartva 
+gondoljunk úgy $y$-ra, mint egy 
+egydimenzióban mozgó pontszerű
+test (tömegpont) helyzetét megadó koordinátára,
+azaz mértékegysége legyen méter (m).
+Ebben a képben $t$ változó jelöli az időt, 
+azaz mértékegysége másodperc (s).
+Ezekből következik, hogy a $c$ konstans
+mértékegysége $\text{m}/\text{s}^2$.
+
+Tegyük fel, hogy ismert a tömegpont
+pozíciója, $y_0 = y(t=0)$, 
+a $t=0$ időpontban. 
+Kérdés, hogyan változik ez a pozíció
+az idő függvényeként, $y(t) = ?$
+
+Az \eqref{eq:elsorendupelda} egyenlet
+bal oldalán szereplő deriváltat közelíthetjük
+egy kis $\Delta t$ időlépést választva:
+\begin{equation}
+    \frac{y(t+\Delta t)-y(t)}{\Delta t} = 3 c t.
+\end{equation}
+Átrendezve az egyenletet, fejezzük ki a függvény későbbi értékét 
+a korábbi értékével:
+\begin{equation}
+    y(t+\Delta t) = 3 c t \Delta t + y(t)
+\end{equation}
+Ebből az egyenletből már látszik, hogy hogyan
+lehet számítógéppel (\emph{numerikusan}) 
+közelítőleg kiértékelni a tömegpont
+pozícióját a $\Delta t$, $2 \Delta t$, $3\Delta t$,
+... időpontokban. 
+
+A számítási eljárást bemutatjuk a következő
+konkrét példán. Legyen $c=1 \text{m}/\text{s}^2$,
+és $y_0 = 4$ m. 
+Rajzoljuk ki a tömegpont pozíciójának
+időfüggését a $\Delta t = 0.01$ időlépés
+használatával. 
+Hasonlítsuk össze az így kapott görbét, és
+az egzaktul, zárt alakban felírt megoldást, 
+ami ilyen alakú:
+\begin{equation}
+    y(t) = y_0 + \frac{3}{2} c t^2
+\end{equation}
+
+\section{Szabadesés}
+
+Az előző szakaszban egy elsőrendű közönséges
+lineáris differenciálegyenletet vizsgáltunk. 
+Most egy másodrendű közönséges differenciálegyenlet
+következik, ami a testek szabadesését írja le. 
+
+
+\begin{figure}[h]
+\includegraphics[width=10cm]{images/szabadeses.png}
+\caption{Szabadesés $v_0$ kezdősebességgel, $z_0$ kezdeti
+magasságból.\label{fig:szabadeses}}
+\end{figure}
+
+A szabadesés problémáját és a kezdeti feltételeket
+a FIG.~\ref{fig:szabadeses}. brán mutatjuk be.
+Függőleges irányban áll a z tengely,
+felfelé irányítva. 
+A mozgásegyenlet nem más, mint Newton II. törvénye:
+\begin{equation}
+    m \ddot{z}(t) = - m g,
+\end{equation}
+ahol $m$ a test tömege, és $g$ a nehézségi 
+gyorsulás. 
+A mozgás leírásához meg kell adni 
+két kezdeti feltételt: 
+kezdeti pozíció, $z_0 = z(t=0)$, 
+és 
+kezdeti sebesség, $v_0 = \dot{z}(t=0)$.
+Ezek ismeretében a feladat általában 
+a mozgás leírása, azaz a pozíció és a 
+sebesség időbeli változásának 
+kiszámítása, $z(t)= ? $ és $v(t) = ?$.
+Ennek a problémának az egzakt megoldása természetesen 
+jól ismert, így ezzel az ismert megoldással össze tudjuk 
+majd vetni a numerikus megoldásunkat, így igazolva
+a numerikus módszer helyességét. 
+
+
+A számítógépes megoldáshoz szükségünk van 
+a második derivált differenciál-közelítésére.
+Ennek egy lehetséges felírása a következőképpen
+adható meg. 
+
+Az első derivált a $t+\Delta t/2$ helyen 
+közelítőleg kifejezhető így:
+\begin{equation}
+   \dot{z}(t+\Delta t/2)
+   \approx \frac{z(t+\Delta t) - z(t)}{\Delta t}
+\end{equation}
+Másrészt, az 
+első derivált a $t-\Delta t/2$ helyen 
+közelítőleg kifejezhető így:
+\begin{equation}
+    \dot{z}(t-\Delta t/2) \approx 
+    \frac{z(t) - z(t-\Delta t)}{\Delta t}
+\end{equation}
+A második derivált közelítőleg kifejezhető 
+az első deriválttal: 
+\begin{equation}
+\ddot{z}(t)
+\approx 
+\frac{\dot{z}(t+\Delta t/2) - \dot{z}(t-\Delta t/2)}{\Delta t}
+\end{equation}
+Mindezekből következik, hogy 
+a második derivált
+közelítőleg kifejezhető így:
+\begin{equation}
+\ddot{z}(t)
+\approx 
+  \frac{\frac{z(t+\Delta t) - z(t)}{\Delta t}
+  - \frac{z(t) - z(t-\Delta t)}{\Delta t}}{\Delta t}
+\end{equation}
+
+
+
+    
+Tehát a fenti mozgásegyenlet 
+differenciaegyenlet formájában így írható fel:
+\begin{equation}
+\label{eq:differenciaegyenlet}
+    m \frac{\frac{z(t+\Delta t) - z(t)}{\Delta t}
+  - \frac{z(t) - z(t-\Delta t)}{\Delta t}}{\Delta t}
+    = - m g.
+\end{equation}    
+Ennek átrendezésével pedig kapjuk a következő 
+formulát, amit már közvetlenül használhatunk 
+a számítógépes programunkban:
+ha ismerjük a pozíciót a $t-\Delta t$ időpontban,
+és a $t$ időpontban, akkor a $t+\Delta t$ 
+időpontban ez lesz a pozíció:
+\begin{equation}
+\label{eq:zkesobbi}
+    z(t+\Delta t) = -g \Delta t^2 + 2 z(t) - z(t-\Delta t).
+\end{equation}
+    
+A kezdeti feltételek közül a $z_0$ kezdőpozíció
+adja a $z(t=0)$ értéket, míg a $v_0$
+kezdősebességből megkaphatjuk az első
+időlépés utáni pozíciót, $z(\Delta t) = z_0 + v_0 \Delta t$.
+Ezt a két értéket beírva \eqref{eq:zkesobbi} jobb oldalába,
+a bal oldal megadja $z(2\Delta t)$ értékét, majd
+ezt a módszert iterálva az összes 
+későbbi $n\Delta t$ időpontban is kiszámíthatjuk a
+pozíció értékét. 
+Ha a sebességértékekre is szükségünk van, akkor azt
+például a 
+\begin{equation}
+    v(n \Delta t) \approx \frac{z((n+1) \Delta t) - z(n\Delta t)}{\Delta t}
+\end{equation}
+egyenletből kaphatjuk meg.
+
+
+    
+A numerikus megoldásunkat könnyen ellenőrizhetjük, hiszen
+a szabadesés problémájára ismerjük az egzakt
+megoldást:
+\begin{equation}
+    z(t) = z_0 + v_0 t - \frac{1}{2} gt^2
+\end{equation}
+
+
+
+
+
+Egy konkrét feladat a következő. 
+Írjuk le a szabadesést, azaz a pozíció időfüggését,
+a következő kezdeti feltételek esetén:
+$z(t=0) = z_0 = 1$ m, 
+$v_0 = 0 \frac{m}{s}$.
+Kérdés: $z(t) = ?$ 0 s és 5 s közötti időablakban.
+
+A fent leírt numerikus eljárással kapott eredményt
+mutatják a kék adatpontok a FIG.~\ref{fig:szabadeseseredmeny}
+ábrán, egy konkrét $\Delta t$ időlépés-érték esetén.
+Összehasonlításképpen a fekete vonal mutatja
+az egzakt megoldást;
+a hasonlóság meggyőző.
+
+% Procedúra:
+% \begin{enumerate}
+%     \item 12-es egyenletből kifejezni a $z(\Delta t)$
+%     értékét
+%     \item ezt beírni a 10-es egyenletbe, úgy hogy 
+%     azt a $t=\Delta t$ esetben tekintjük
+%     \item 10-es egyenlet kiértékelése megadja
+%     a $z(2\Delta t)$ értékét.
+%     \item ezután a 10-es egyenletet kell ismételgetni
+%     úgy, hogy a bal oldalon $z(3\Delta t)$ szerepel, 
+%     majd $z(4\Delta t)$, és így tovább.
+% \end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = 10cm]{images/szabadeses_plot.png}
+    \caption{A szabadesés numerikus szimulációja. 
+    Kék: Szimulált adatok, időlépés: $\Delta t = 0.02$ s.
+    Fekete: egzakt megoldás. \\
+    \bf{Forráskód: code/szabadeses}
+    \label{fig:szabadeseseredmeny}}
+\end{figure}
+
+
+
+
+
+
+\section{Rezgőmozgás két dimenzióban}
+
+
+
+
+
+Az előző szakaszokban egydimenziós mozgást vizsgáltunk, 
+ebben a szakaszban viszont továbblépünk a 
+kétdimenziós mozgások leírására.
+Egy kétdimenziós rezgőmozgás egyenleteit fogjuk megoldani 
+numerikusan. 
+Az egzakt megoldás itt is ismert. 
+
+
+% Egy test körszerű pályán halad, melynek pozícióvektora $\vec{r}$.
+% Fejezzük ki a centripetális erőt Newton II. törvényéből:
+% \begin{equation}
+%     F_{cp} = m a \Rightarrow a = \frac{v^{2}}{r} 
+% \end{equation}
+
+% Fejezzük ki a centripetális erőt az $\vec{r}$ vektor és egy $\alpha$ konstans szorzataként.
+
+Feltételezzük, hogy a síkon mozgó tömegpontra egy centrális
+erő hat, ami a sík origója felé húzza a tömegpontot, 
+mégpedig az origótól vett távolsággal arányos nagyságú
+erővel. 
+Formálisan tehát az erővektor és a pozícióvektor így függ össze:
+% Mivel a centripetális erő ellentétes irányú az $\vec{r}$ vektorral, negatív előjlelet kap:
+\begin{equation}
+    \vec{F} = - \alpha \vec{r}(t)
+\end{equation}
+Ez az egyenlet maga a mozgásegyenlet is.  
+Az elrendezés a FIG.~\ref{fig:rezgomozgas} ábrán látható.
+A feladat akkor válik jól definiálttá, ha megadjuk a kezdeti 
+pozícióvektort és sebességvektort is. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = 10cm]{images/korm.png}
+    \caption{Kétdimenziós rezgőmozgás.
+    \label{fig:rezgomozgas}}
+\end{figure}
+
+
+A vektorokkal felírt fenti mozgásegyenlet diszkretizációja előtt 
+írjuk ki a vektorokat komponensenként. 
+Például a helyvektor 
+\begin{equation}
+    \vec{r} = (x(t), y(t))
+\end{equation}
+alakú.
+Írjuk fel a differenciálegyenletet mindkét koordinátára:
+\begin{equation}
+    m \ddot{x}(t) = - \alpha x(t)
+\end{equation}
+\begin{equation}
+    m \ddot{y}(t) = - \alpha y(t)    
+\end{equation}
+A feladatunkat jelentősen leegyszerűsíti, hogy az egyik egyenlet
+csak $x$-et, a másik csak $y$-t tartalmazza,
+azaz a két egyenlet \emph{szétcsatolódik}.
+
+
+A fenti differenciálegyenletek diszkretizációjával 
+ezeket a differencia-egyenleteket kapjuk:
+\begin{eqnarray}
+    v_{x}(t + \Delta t) &=& v_x(t) - \beta  x(t) \Delta t, \\
+    x(t + \Delta t) &=&  x(t) + v_{x}(t) \Delta t, \\ 
+    v_{y}(t + \Delta t) &=& v_y(t) - \beta  y(t) \Delta t, \\
+    y(t + \Delta t) &=& y(t) + v_{y}(t) \Delta t, 
+\end{eqnarray}
+ahol $\beta = \alpha / m$.
+
+Mivel másodrendű a differenciálegyenletünk, és két koordinátánk van, négy kezdőfeltételt kell megadnunk, és ezen kívül az $\alpha$ konstanst is.
+Tegyük konkréttá a feladatot!
+Oldjuk meg numerikusan a fenti differenciálegyenletet 
+$\Delta{t} = 0.01$ s időlépéssel, 
+$\beta = 7 \, \text{N}/ (\text{m}\, \text{kg}) = 7 /\text{s}^2$ 
+együtthatóval, 
+és a következő kezdeti paraméterekkel:
+\begin{enumerate}
+    \item $x_{0} = 1$ m,
+    \item $y_{0} = 0$ m,
+    \item $v_{x0} = 0$ m/s,
+    \item $v_{y0} = 1$ m/s.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = 10cm]{images/kormozgas_plot.png}
+    \caption{A körmozgás numerikus szimulációja. Kék: x koordináta.
+    Piros: y koordináta. Időlépés: $\Delta t = 0.01$ s. \\
+    \bf{Forráskód: code/kormozgas}
+    \label{fig:rezgomozgaseredmeny}}
+\end{figure}
+
+A numerikus megoldást a FIG.~\ref{fig:rezgomozgaseredmeny} mutatja. 
+Egy koszinusz- (kék) és egy szinuszfüggvényt (piros) látunk, 
+ugyanazzal a periódusidővel
+($T = 2\pi / \omega \approx 2.37 \, \text{s}$, 
+ahol $\omega = \sqrt{\beta} \approx 2.64$),
+de különböző amplitúdóval. 
+
+
+
+
+
+
+
+\section{A Föld mozgása a Nap körül}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = 10cm]{images/grav.png}
+    \caption{A Föld mozgása a Nap körül.}
+    \label{fig:napfold}
+\end{figure}
+
+Végül megvizsgáljuk a Nap gravitációs terében lévő Föld mozgását. 
+Feltevésünk szerint a Nap az origóban van, és rögzített, 
+lásd FIG.~\ref{fig:napfold} ábra. 
+A Földnek a Naphoz viszonyított pozícióvektorát jelöljük $\vec{r}$-el,
+és feltesszük hogy a Föld mozgása az xy síkban történik.
+
+A mozgásegyenletet úgy kapjuk, hogy felírjuk a Földre a Nap által
+kifejtett gravitációs erővektort:
+\begin{equation}
+    \vec{F_{g}} = \ddot{\vec{r}} = - \hat{\vec{r}} \gamma \frac{m_{N}m_{F}}{r^{2}}
+\end{equation}
+ahol $\hat{\vec{r}} = \vec{r}/r$ az $\vec{r}$ irányú egységvektor,
+és $\gamma = 6.67 \cdot 10^{-11} \frac{Nm^2}{kg^2}$ a gravitációs állandó.
+
+Fejezzük ki az $\hat{\vec{r}}$ helyvektort:
+\begin{equation}
+    \hat{\vec{r}} = \frac{\vec{r}}{|\vec{r}|} = \frac{(x, y)}{\sqrt{x^{2} + y^{2}}}.
+\end{equation}
+Ebből kapjuk, hogy
+\begin{equation}
+    \vec{F_{g}} = - \gamma \frac{{m_{F} m_{N} \vec{r}}}{r^{3}},
+\end{equation}
+illetve ezt a mozgásegyenletet koordinátánként kiírva kapjuk, hogy 
+\begin{eqnarray}
+    \ddot{x}(t) &=& - \gamma \frac{m_{N} x(t)}{(x^{2} + y^{2})^{\frac{3}{2}}}
+  \\
+    \ddot{y}(t) &=& - \gamma \frac{m_{N} y(t)}{(x^{2} + y^{2})^{\frac{3}{2}}}
+\end{eqnarray}
+
+Az ezekből diszkretizáció révén kapható 
+differenciaegyenletek:
+\begin{eqnarray}
+    v_{x}(t + \Delta t) &=& - \gamma \frac{m_{N} x(t)}{(x^2 + y^2)^\frac{3}{2}} \Delta t \\
+    x(t + \Delta t) &=& x(t) + v_{x}(t) \Delta t \\
+    v_{y}(t + \Delta t) &=& - \gamma \frac{m_{N} y(t)}{(x^2 + y^2)^\frac{3}{2}} \Delta t \\
+    y(t + \Delta t) &=& y(t) + v_{y}(t) \Delta t
+\end{eqnarray}
+
+Ezen egyenletek numerikus megoldását ábrázoljuk a 
+FIG.~\ref{fig:ottmarad},
+\ref{fig:elhagyja}, \ref{fig:beleesik} ábrákon, 
+három különböző kezdeti feltétel esetén (ld. ábrafeliratok).
+A FIG.~\ref{fig:ottmarad} ábrán a kezdősebesség úgy van beállítva,
+hogy a Föld - a tényleges mozgásához hasonlóan - ellipszispályán
+mozog a Nap körül.
+A FIG.~\ref{fig:elhagyja} ábrán a kezdősebesség nagyobb, 
+ezért a Föld a mozgása során eltávolodik a Naptól. 
+A FIG.~\ref{fig:beleesik} ábrán a kezdősebesség kisebb, 
+ezért a Föld a mozgása során beleesik a Napba. \\
+{\bf Forráskód: code/orbsim}
+
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale = 0.5]{images/palya1.png}
+    \caption{A Föld körpályán(x = $0$ km, y = $150,000,000 km$, v = $262.5 km/s$, Időlépték: $\Delta t = 5000 s$)}
+    \label{fig:ottmarad}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale = 0.5]{images/palya2.png}
+    \caption{A Föld elhagyja a Napot(x = $-225,000,000 km$, y = $150,000,000 km$, $v = 375 km/s$, Időlépték $\Delta t = 5000 s$)}
+    \label{fig:elhagyja}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale = 0.5]{images/palya3.png}
+    \caption{A Föld és a Nap összeütközik(x = $-150,000,000 km$, y = $150,000,000 km$, v = $53,25 km/s$, Időlépték $\Delta t = 5000 s$)}
+    \label{fig:beleesik}
+\end{figure}
+
+
+\section{Összefoglalás}
+
+Ebben a jegyzetben bemutattuk, hogy hogyan
+lehet a tömegpont-mechanika feladatait számítógéppel, 
+numerikusan megoldani. 
+Néhány lépésben eljutottunk 
+a bolygómozgást leíró mozgásegyenletek
+megoldásáig.
+
+A jegyzet hasznos lehet a fizika és/vagy a 
+differenciálegyenletek és/vagy a programozás 
+iránt érdeklődő középiskolások vagy
+egyetemisták számára.
+
+A jegyzet a Matehetsz Mentor Programban készült, 
+2020-2021-ben. 
+SM készítette a numerikus számításokat, ábrákat, illetve a szöveg 
+első verzióját. PA javasolta a témát és szerkesztette a szöveget. 
+
+
+\end{document}
+
+
+
+á
